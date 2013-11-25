@@ -32,7 +32,8 @@ add_executable(entropy src/entropy.cpp)
 target_link_libraries(entropy FastPFor_lib)
 
 # Enable sse4.1 instructions for horizontal bit packing
-set_source_files_properties(src/horizontalbitpacking.cpp PROPERTIES COMPILE_FLAGS -msse4.1)
+set_source_files_properties(src/horizontalbitpacking.cpp PROPERTIES COMPILE_FLAGS "-msse4.1")
+set_source_files_properties(src/benchbitpacking.cpp      PROPERTIES COMPILE_FLAGS "-msse4.1")
 add_executable(benchbitpacking src/benchbitpacking.cpp src/horizontalbitpacking.cpp)
 target_link_libraries(benchbitpacking FastPFor_lib)
 
@@ -45,11 +46,11 @@ else()
                    "codecssnappy and inmemorybenchmarksnappy.")
     include_directories(${snappy_INCLUDE_DIRS})
     add_executable(codecssnappy src/codecs.cpp)
-    set_target_properties(codecssnappy PROPERTIES DEFINE_SYMBOL USESNAPPY)
+    set_target_properties(codecssnappy PROPERTIES COMPILE_FLAGS "-DUSESNAPPY")
     target_link_libraries(codecssnappy FastPFor_lib ${snappy_LIBRARIES})
 
     add_executable(inmemorybenchmarksnappy src/inmemorybenchmark.cpp)
-    set_target_properties(inmemorybenchmarksnappy PROPERTIES DEFINE_SYMBOL USESNAPPY)
+    set_target_properties(inmemorybenchmarksnappy PROPERTIES COMPILE_FLAGS "-DUSESNAPPY -msse4.1")
     target_link_libraries(inmemorybenchmarksnappy FastPFor_lib ${snappy_LIBRARIES})
 endif()
 
@@ -57,6 +58,7 @@ add_executable(codecs src/codecs.cpp)
 target_link_libraries(codecs FastPFor_lib)
 
 add_executable(inmemorybenchmark src/inmemorybenchmark.cpp)
+set_source_files_properties(src/inmemorybenchmark.cpp PROPERTIES COMPILE_FLAGS "-msse4.1")
 target_link_libraries(inmemorybenchmark FastPFor_lib)
 
 add_executable(unit src/unit.cpp)

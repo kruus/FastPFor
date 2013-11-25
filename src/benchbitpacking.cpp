@@ -161,6 +161,7 @@ void simplebenchmark(uint32_t N = 1U << 16, uint32_t T = 1U << 9) {
 
     cout << "#million of integers per second: higher is better" << endl;
     cout << "#bit, pack, pack without mask, unpack" << endl;
+    cout<<"\t    fastpack\tfastpackwithoutmask\tfastunpack\t\t\tsimdpack\tsimdunpackw-m\tsimdunpack\thorizontalunpack"<<endl;       
     for (uint32_t bitindex = 0; bitindex < 32; ++bitindex) {
         uint32_t bit = 32 - bitindex;
         maskfnc(data, bit);

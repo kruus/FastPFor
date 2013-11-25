@@ -60,7 +60,7 @@ void message() {
         else
             cout << ",";
     }
-    cout << "(or give NONE instead of a list)" << endl;
+    cout << "(or give NONE or ALL instead of a list)" << endl;
     cout << "The --displayhistogram flag must appear before the other flags."
             << endl;
     cout << "Note that the --codecs flag must appear before the other flags."
@@ -98,7 +98,12 @@ int main(int argc, char **argv) {
             myalgos.clear();
             string codecsstr(optarg);
             if (codecsstr.compare("NONE") != 0) {
-                vector < string > codecslst = split(codecsstr, ",:;");
+                vector < string > codecslst;
+                if( codecsstr.compare("ALL") == 0 ){
+                    codecslst = CODECFactory::allNames();
+                }else{
+                    codecslst = split(codecsstr, ",:;");
+                }
                 for (auto i = codecslst.begin(); i != codecslst.end(); ++i) {
                     cout << "# pretty name = " << *i << endl;
                     if (i->at(0) == '@') {// SIMD
