@@ -160,8 +160,11 @@ void simplebenchmark(uint32_t N = 1U << 16, uint32_t T = 1U << 9) {
     uint64_t horizontalunpacktime;
 
     cout << "#million of integers per second: higher is better" << endl;
-    cout << "#bit, pack, pack without mask, unpack" << endl;
-    cout<<"\t    fastpack\tfastpackwithoutmask\tfastunpack\t\t\tsimdpack\tsimdunpackw-m\tsimdunpack\thorizontalunpack"<<endl;       
+    cout << right;
+    cout<<setw(5)<<"#    "<<setw(9)<<"fastpack"<<setw(9)<<"fastpack"<<setw(7)<<" fast "
+        <<setw(5)<<"    " <<setw(9)<<"simdpack"<<setw(9)<<"simdpack"<<setw(7)<<" simd "<<" horizontal"<<endl
+        <<setw(5)<<"# bit"<<setw(9)<<"        "<<setw(9)<<"w/o mask"<<setw(7)<<"unpack"
+        <<setw(5)<<"#bit" <<setw(9)<<"        "<<setw(9)<<"w/o mask"<<setw(7)<<"unpack"<<" unpack"<<endl;
     for (uint32_t bitindex = 0; bitindex < 32; ++bitindex) {
         uint32_t bit = 32 - bitindex;
         maskfnc(data, bit);
@@ -248,18 +251,16 @@ void simplebenchmark(uint32_t N = 1U << 16, uint32_t T = 1U << 9) {
 
             }
 
-            cout << std::setprecision(4) << bit << "\t\t" << N * (T - 1)
-                    / double(packtime) << "\t\t" << N * (T - 1) / double(packtimewm)
-                    << "\t\t\t" << N * (T - 1) / double(unpacktime) << "\t\t";
+            cout << std::setprecision(4) << setw(4) << bit
+                << setw(9) << N * (T - 1) / double(packtime)
+                << setw(9) << N * (T - 1) / double(packtimewm)
+                << setw(7) << N * (T - 1) / double(unpacktime);
 
-            cout << std::setprecision(4) << bit << "\t\t" << N * (T - 1)
-                    / double(simdpacktime) << "\t\t" << N * (T - 1)
-                    / double(simdpacktimewm) << "\t\t" << N * (T - 1)
-                    / double(simdunpacktime) << "\t\t";
-            cout<< N * (T - 1)
-                            / double(horizontalunpacktime) << "\t\t";
-
-
+            cout << std::setprecision(4) << setw(5)<<bit
+                << setw(9) << N * (T - 1) / double(simdpacktime)
+                << setw(9) << N * (T - 1) / double(simdpacktimewm)
+                << setw(7) << N * (T - 1) / double(simdunpacktime);
+            cout<< setw(7) << N * (T - 1) / double(horizontalunpacktime);
             cout << endl;
         }
 

@@ -1,0 +1,79 @@
+new tests:
+----------
+	mkdir build; cd build; cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
+	# I've removed my own codecs that were added to headers/codecfactory.h.......
+	cd ..; cd build; make clean; make -j5 && ./unit && ./codecssnappy --displayhistogram --codecs=copy,BP32,isimdbinarypacking,fastbinarypacking16,fastbinarypacking32,fastbinarypacking8 --zipfian 2>&1 | tee test2.log
+	# add --codecs=ALL option, and fixed -DUSESNAPPY compile flag
+        cd ..; cd build; make clean; make -j5 && ./unit && ./codecssnappy --displayhistogram --codecs=ALL --uniformdynamic 2>&1 | tee testAll.log
+  NEW: added the "ALL" spec to run all supported codecs
+	./codecssnappy --codecs=ALL --uniformdynamic
+Observations:
+  benchbitpacking:
+	- on my desktop, simdpack speed roughly same with or without mask (must pipeline well)
+	- for unpack, simd version especially faster for cache->cache
+
+older notes:
+------------
+building with CMake;
+	switched to use -std=c++11 compile flag (static_assert cleans up some assertions)
+  $ mkdir build
+  $ cd build
+  $ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=INSTALL_DIR PATH_TO_BLOSC_SOURCE_DIR
+    i.e.
+		cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
+
+run a test by hand:
+	./codecssnappy --displayhistogram --codecs=copy,BP32,simdbinarypacking,simdfastpfor,snappy,varintg8iu,vbyte --uniformdynamic
+	cd ..; cd build; make clean; make -j5 && ./unit && ./codecssnappy --displayhistogram --codecs=copy,simdBP128,simdBP64,simdBP32,ekBP32,BP32 --uniformdynamic
+
+rerun build test:
+	cd ..; cd build; make clean; make -j5 && ./unit && ./codecssnappy --displayhistogram --codecs=copy,simdBP128,simdBP64,simdBP32,ekBP32,BP32 --zipfian
+
+help:
+	./codecssnappy --help
+
+run speed tests (all codecs)
+	./codecssnappy --codecs=BP32,binarypacking32,copy,ekBP32,fastbinarypacking16,fastbinarypacking32,fastbinarypacking8,fastpfor,newpfor,optpfor,pfor,pfor2008,simdBP128,simdBP32,simdBP64,simdfastpfor,simple8b,simplepfor,varintg8iu,vbyte,vsencoding --uniformdynamic
+----------------------
+Most codecs are of form:
+    CompositeCodec<Codec1, Codec2>: public IntegerCODEC
+    {
+	encodeArray:
+		encode first rounded-down multiple of Codec1::BlockSize bytes
+		encode remainder bytes with codec2
+    }
+
+Generic Approach is
+	array
+	--> differential coding (e.g. \delta_i = x_i - x_{i+1})
+	--> compression (e.g. SIMD-BP128)
+
+SIMDBinaryPacking::encode
+	16 miniblocks of 128 bytes (= 32 u32 integers)
+	maxbits--> 16 bytes of bit-lengths --> Bs[0..16] (packed as 4 big-endian u32)
+	Then pack each miniblock[i] according to bit length Bs[i]
+
+	encoding 2k = 16*128 bytes means the bs[i] prefixes take 16 bytes, exactly 1 SIMD register.
+	(so entire encoding is multiple of 128 in size)
+
+	encoding of maxbits is done via switch to __SIMD_fastpackwithoutmask{I=1--32}_32
+	routines. Encoding 32*I bits outputs some number of full 4-u32 registers, and
+	retains some partial content (possibly) in the final output location.
+	
+simdPfor:
+	create histogram of bits lengths in block of 32 integers
+	based on hist, calc compress size, choose "exception bits" b <= maxbits
+	to minimize compressed size (linear formula estimate)
+	32-bit 'size' header, then b-LSB packed values (some mult of 4 bytes).
+	Continue with other blocks, each with own 'b' value, storing the 'b'-LSB
+	data consecutively.
+
+	For each block track 'b','maxbits','c=# of exceptions', and then
+	the list {exception locations, 7-bits each, stored as byte values}
+	After the 'size' u32's of 'b'-LSB packed block data are stored, store
+	the tracking information (pad to u32 alignment), again preceded by its
+	own u32 'trackingSize' field.
+
+	Then for each exception location, the hi (maxbits-b) bits are stored, compressed
+	per page. fastPFOR stores each block's hi-exception bits into stream[[maxbits-b)],
+	and then outputs the non-empty bit-packed arrays in sequence.
