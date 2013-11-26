@@ -18,9 +18,8 @@
  * Designed by D. Lemire with ideas from Leonid Boystov. This scheme is NOT patented.
  *
  * Code data in miniblocks of 128 integers.
- * To preserve alignment, we use regroup
- * 8 such miniblocks into a block of 8 * 128 = 1024
- * integers.
+ * To maintain 16-byte write alignment in fastpack, we group
+ * 16 such miniblocks into a block of 16 * 128 = 2048 integers.
  *
  * Reference and documentation:
  *
@@ -46,25 +45,24 @@ public:
         *out++ = static_cast<uint32_t>(length);
         while(needPaddingTo128Bits(out)) *out++ = CookiePadder;
         uint32_t Bs[HowManyMiniBlocks];
-        for (const uint32_t * const final = in + length; in + BlockSize
-                <= final; in += BlockSize) {
-            for (uint32_t i = 0; i < HowManyMiniBlocks; ++i)
-                Bs[i] = maxbits(in + i * MiniBlockSize,
-                        in + (i + 1) * MiniBlockSize);
-            *out++ = (Bs[0] << 24) | (Bs[1] << 16) | (Bs[2] << 8)
-                | Bs[3];
-            *out++ = (Bs[4] << 24) | (Bs[5] << 16) | (Bs[6] << 8)
-                            | Bs[7];
-            *out++ = (Bs[8] << 24) | (Bs[9] << 16) | (Bs[10] << 8)
-                            | Bs[11];
-            *out++ = (Bs[12] << 24) | (Bs[13] << 16) | (Bs[14] << 8)
-                            | Bs[15];
-            for (uint32_t i = 0; i < HowManyMiniBlocks; ++i) {
-                // D.L. : is the reinterpret_cast safe here?
-                SIMD_fastpackwithoutmask_32(in + i * MiniBlockSize, reinterpret_cast<__m128i *>(out),
-                                Bs[i]);
-                out += MiniBlockSize/32 * Bs[i];
+        // [ejk] loop merge and lightly optimize --> ~ 7-15% speedup on codecs tests 1,2,3
+        uint32_t const* inNxt = in + BlockSize;
+        for (const uint32_t * const final = in + length; inNxt <= final; inNxt += BlockSize) {
+            uint32_t *out0 = out;
+            out += HowManyMiniBlocks / 4U;      // save space for Bs[16] info
+            uint32_t const* mbNxt = in;
+            for (uint32_t i=0U; i < HowManyMiniBlocks;  in = mbNxt, ++i ) {
+                mbNxt += MiniBlockSize;
+                Bs[i] = maxbits(in, mbNxt);
+                SIMD_fastpackwithoutmask_32(in, reinterpret_cast<__m128i *>(out), Bs[i]);
+                out += MiniBlockSize/32U * Bs[i];
             }
+            assert( in = inNxt ); // after HowManyMiniBlocks, 'in' has advanced by exactly BlockSize
+            static_assert( HowManyMiniBlocks == 16, "hard-wired for HowManyMiniBlocks == 16");
+            *out0 = (Bs[0] << 24) | (Bs[1] << 16) | (Bs[2] << 8) | Bs[3];
+            *++out0 = (Bs[4] << 24) | (Bs[5] << 16) | (Bs[6] << 8) | Bs[7];
+            *++out0 = (Bs[8] << 24) | (Bs[9] << 16) | (Bs[10] << 8) | Bs[11];
+            *++out0 = (Bs[12] << 24) | (Bs[13] << 16) | (Bs[14] << 8) | Bs[15];
         }
         nvalue = out - initout;
     }
