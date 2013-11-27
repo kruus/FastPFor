@@ -217,6 +217,7 @@ private:
     char mask[256][32];
 
     int getNumByteNeeded(const uint32_t value) {
+	// popcount faster [ejk]
         if (value > 0x000000FF) {
             if (value > 0x0000FFFF) {
                 if (value > 0x00FFFFFF) {
