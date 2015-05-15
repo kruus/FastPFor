@@ -1,0 +1,1 @@
+/usr/bin/c++   -O3 -DNDEBUG    CMakeFiles/codecssnappy.dir/src/codecs.cpp.o  -o codecssnappy -rdynamic libFastPFor_lib.a /usr/local/lib/libsnappy.so -Wl,-rpath,/usr/local/lib 

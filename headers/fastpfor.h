@@ -14,20 +14,24 @@
 #include "blockpacking.h"
 #include "simple8b.h"
 
+namespace FastPForLib {
+
 /**
  * FastPFor
  *
+ * In a multithreaded context, you may need one FastPFor per thread.
  *
  * Designed by D. Lemire. This scheme is NOT patented.
  *
  * Reference and documentation:
  *
- * Daniel Lemire and Leonid Boytsov, Decoding billions of integers per second through vectorization
+ * Daniel Lemire and Leonid Boytsov, Decoding billions of integers per second through std::vectorization
  * Software: Practice & Experience
  * http://arxiv.org/abs/1209.2137
  * http://onlinelibrary.wiley.com/doi/10.1002/spe.2203/abstract
  *
  */
+template <uint32_t BlockSizeInUnitsOfPackSize = 8>// BlockSizeInUnitsOfPackSize can have value 4 or 8
 class FastPFor: public IntegerCODEC {
 public:
     /**
@@ -41,7 +45,6 @@ public:
         assert(gccbits(BlockSizeInUnitsOfPackSize * PACKSIZE - 1) <= 8);
     }
     enum {
-        BlockSizeInUnitsOfPackSize = 4,
         PACKSIZE = 32,
         overheadofeachexcept = 8,
         overheadduetobits = 8,
@@ -52,15 +55,15 @@ public:
     // sometimes, mem. usage can grow too much, this clears it up
     void resetBuffer() {
         for (size_t i = 0; i < datatobepacked.size(); ++i) {
-            vector<uint32_t> ().swap(datatobepacked[i]);
+            std::vector<uint32_t> ().swap(datatobepacked[i]);
         }
     }
 
     const uint32_t PageSize;
     const uint32_t bitsPageSize;
 
-    vector<vector<uint32_t> > datatobepacked;
-    vector<uint8_t> bytescontainer;
+    std::vector<std::vector<uint32_t> > datatobepacked;
+    std::vector<uint8_t> bytescontainer;
 
 #ifndef NDEBUG
     const uint32_t * decodeArray(const uint32_t *in, const size_t length,
@@ -120,7 +123,7 @@ public:
         }
         assert(out == nvalue + initout);
         if (oldnvalue < nvalue)
-            cerr << "It is possible we have a buffer overrun. " << endl;
+            std::cerr << "It is possible we have a buffer overrun. " << std::endl;
         resetBuffer();// if you don't do this, the buffer has a memory
     }
 
@@ -144,6 +147,7 @@ public:
             cexcept += freqs[b + 1];
             uint32_t thiscost = cexcept * overheadofeachexcept + cexcept
                     * (maxb - b) + b * BlockSize + 8;// the  extra 8 is the cost of storing maxbits
+            if(maxb - b == 1) thiscost -= cexcept;
             if (thiscost < bestcost) {
                 bestcost = thiscost;
                 bestb = static_cast<uint8_t>(b);
@@ -168,7 +172,7 @@ public:
             *bc++ = bestcexcept;
             if (bestcexcept > 0) {
                 *bc++ = maxb;
-                vector < uint32_t > &thisexceptioncontainer
+                std::vector < uint32_t > &thisexceptioncontainer
                         = datatobepacked[maxb - bestb];
                 const uint32_t maxval = 1U << bestb;
                 for (uint32_t k = 0; k < BlockSize; ++k) {
@@ -188,14 +192,15 @@ public:
         out += (bytescontainersize + sizeof(uint32_t) - 1)
                 / sizeof(uint32_t);
         uint32_t bitmap = 0;
-        for (uint32_t k = 1; k <= 32; ++k) {
+        for (uint32_t k = 2; k <= 32; ++k) {
             if (datatobepacked[k].size() != 0)
                 bitmap |= (1U << (k - 1));
         }
         *(out++) = bitmap;
-        for (uint32_t k = 1; k <= 32; ++k) {
-            if (datatobepacked[k].size() > 0)
-                out = packingvector<32>::packmeupwithoutmask(datatobepacked[k], out, k);
+        for (uint32_t k = 2; k <= 32; ++k) {
+            if (datatobepacked[k].size() > 0) {
+                out = packingvector<32>::packmeuptightwithoutmask(datatobepacked[k], out, k);
+            }
         }
         nvalue = out - initout;
     }
@@ -210,13 +215,13 @@ public:
         const uint8_t * bytep = reinterpret_cast<const uint8_t *> (inexcept);
         inexcept += (bytesize + sizeof(uint32_t) - 1) / sizeof(uint32_t);
         const uint32_t bitmap = *(inexcept++);
-        for (uint32_t k = 1; k <= 32; ++k) {
+        for (uint32_t k = 2; k <= 32; ++k) {
             if ((bitmap & (1U << (k - 1))) != 0) {
-                inexcept = packingvector<32>::unpackme(inexcept, datatobepacked[k], k);
+                inexcept = packingvector<32>::unpackmetight(inexcept, datatobepacked[k], k);
             }
         }
         length = inexcept - initin;
-        vector<uint32_t>::const_iterator unpackpointers[32 + 1];
+        std::vector<uint32_t>::const_iterator unpackpointers[32 + 1];
         for (uint32_t k = 1; k <= 32; ++k) {
             unpackpointers[k] = datatobepacked[k].begin();
         }
@@ -227,26 +232,29 @@ public:
             in = unpackblock<BlockSize>(in, out, b);
             if (cexcept > 0) {
                 const uint8_t maxbits = *bytep++;
-                vector<uint32_t>::const_iterator & exceptionsptr =
-                        unpackpointers[maxbits - b];
-                for (uint32_t k = 0; k < cexcept; ++k) {
-                    const uint8_t pos = *(bytep++);
-                    out[pos] |= (*(exceptionsptr++)) << b;
+                if(maxbits - b == 1) {
+                	for (uint32_t k = 0; k < cexcept; ++k) {
+                		const uint8_t pos = *(bytep++);
+                		out[pos] |= static_cast<uint32_t>(1) << b;
+                	}
+                } else {
+                	std::vector<uint32_t>::const_iterator & exceptionsptr =
+                			unpackpointers[maxbits - b];
+                	for (uint32_t k = 0; k < cexcept; ++k) {
+                		const uint8_t pos = *(bytep++);
+                		out[pos] |= (*(exceptionsptr++)) << b;
+                	}
                 }
             }
         }
         assert(in == headerin + wheremeta);
     }
 
-    string name() const {
-        return "FastPFor";
+    std::string name() const {
+        return std::string("FastPFor")+std::to_string(BlockSize);
     }
 
 };
-
-
-
-
 
 
 
@@ -259,7 +267,7 @@ public:
  *
  * Reference and documentation:
  *
- * Daniel Lemire and Leonid Boytsov, Decoding billions of integers per second through vectorization
+ * Daniel Lemire and Leonid Boytsov, Decoding billions of integers per second through std::vectorization
  * http://arxiv.org/abs/1209.2137
  *
  */
@@ -290,8 +298,8 @@ public:
     const uint32_t PageSize;
     const uint32_t bitsPageSize;
 
-    vector<uint32_t> datatobepacked;
-    vector<uint8_t> bytescontainer;
+    std::vector<uint32_t> datatobepacked;
+    std::vector<uint8_t> bytescontainer;
 
     const uint32_t * decodeArray(const uint32_t *in, const size_t length,
             uint32_t *out, size_t &nvalue) {
@@ -342,7 +350,7 @@ public:
         }
         assert(out == nvalue + initout);
         if (oldnvalue < nvalue)
-            cerr << "It is possible we have a buffer overrun. " << endl;
+            std::cerr << "It is possible we have a buffer overrun. " << std::endl;
     }
 
 
@@ -386,7 +394,8 @@ public:
             getBestBFromData(in, bestb, bestcexcept, maxb);
             *bc++ = bestb;
             *bc++ = bestcexcept;
-            if (true) {
+            if (bestcexcept > 0) {
+                assert(bestb < 32);
                 const uint32_t maxval = 1U << bestb;
                 for (uint32_t k = 0; k < BlockSize; ++k) {
                     if (in[k] >= maxval) {
@@ -439,13 +448,13 @@ public:
         assert(in == headerin + wheremeta);
     }
 
-    string name() const {
+    std::string name() const {
         return "SimplePFor";
     }
 };
 
 
 
-
+} // namespace FastPFor
 
 #endif /* EPFOR_H_ */

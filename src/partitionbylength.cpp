@@ -18,6 +18,7 @@
 #include "util.h"
 
 using namespace std;
+using namespace FastPForLib;
 
 int main(int argc, char **argv) {
     if (argc < 2) {
@@ -35,7 +36,7 @@ int main(int argc, char **argv) {
     map<uint32_t,size_t> counter;
     map<uint32_t,string> name;
     while (reader.loadIntegers(rawdata)) {
-        uint32_t lengthinbits = gccbits(rawdata.size());
+        uint32_t lengthinbits = gccbits(static_cast<uint32_t>(rawdata.size()));
         if(output.find(lengthinbits)==output.end()) {
             ostringstream o;
             o<<filename<<"."<<lengthinbits;
@@ -51,7 +52,7 @@ int main(int argc, char **argv) {
             counter[lengthinbits] = 0;
             name[lengthinbits] = o.str();
         }
-        uint32_t thislength = rawdata.size();
+        uint32_t thislength = static_cast<uint32_t>(rawdata.size());
         if(fwrite(&thislength, sizeof(thislength), 1, output[lengthinbits])!=1) {
             cerr << "problem writing" << endl;
             break;

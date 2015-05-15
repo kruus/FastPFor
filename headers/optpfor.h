@@ -18,13 +18,17 @@
 #include "simple16.h"
 #include "newpfor.h"
 
+namespace FastPForLib {
+
 /**
  * OptPFD
+ *
+ * In a multithreaded context, you may need one OPTPFor per thread.
  *
  * Follows:
  *
  * H. Yan, S. Ding, T. Suel, Inverted index compression and query processing with
- * optimized document ordering, in: WWW Õ09, 2009, pp. 401Ð410.
+ * optimized document ordering, in: WWW '09, 2009, pp. 401-410.
  */
 template<uint32_t BlockSizeInUnitsOfPackSize, class ExceptionCoder = Simple16<
         false> >
@@ -36,8 +40,8 @@ public:
     uint32_t tryB(uint32_t b, const uint32_t *in, uint32_t len);
     uint32_t findBestB(const uint32_t *in, uint32_t len);
 
-    virtual string name() const {
-        ostringstream convert;
+    virtual std::string name() const {
+        std::ostringstream convert;
         convert << "OPTPFor<" << BlockSizeInUnitsOfPackSize << "," << NewPFor<
                 BlockSizeInUnitsOfPackSize, ExceptionCoder>::ecoder.name()
                 << ">";
@@ -132,5 +136,7 @@ uint32_t OPTPFor<BlockSizeInUnitsOfPackSize, ExceptionCoder>::findBestB(
     }
     return b;
 }
+
+} // namespace FastPFor
 
 #endif /* OPTPFOR_H_ */

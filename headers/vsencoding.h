@@ -15,6 +15,8 @@
 #if !defined(__clang__) && !defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #pragma GCC diagnostic ignored "-Wunsafe-loop-optimizations"
 #endif
+
+#include <exception>
 #include "common.h"
 
 /***
@@ -29,11 +31,17 @@
  * Note: This code is not what I would consider model C++ code.
  *
  * The code below follows :
- * F. Silvestri and R. Venturini, ÒVSEncoding: efficient coding and fast
- * decoding of integer lists via dynamic programming,Ó in CIKM, 2010, pp. 1219-1228.
+ * F. Silvestri and R. Venturini, ï¿½VSEncoding: efficient coding and fast
+ * decoding of integer lists via dynamic programming,ï¿½ in CIKM, 2010, pp. 1219-1228.
  */
 
 namespace vsencoding {
+
+// better to explicitly mark these dependencies
+using FastPForLib::div_roundup;
+using FastPForLib::IntegerCODEC;
+using FastPForLib::asmbits;
+using FastPForLib::NotEnoughStorage;
 
 class BitsWriter {
 private:
@@ -148,7 +156,7 @@ VSEncoding::compute_OptPartition(uint32_t *seq, uint32_t len, uint32_t fixCost,
     cost = new uint64_t[len + 1];
 
     if (SSSP == NULL || cost == NULL)
-        cerr << "Can't allocate memory" << endl;
+        std::cerr << "Can't allocate memory" << std::endl;
 
     for (i = 0; i < len+1U; ++i) {
         SSSP[i] = -1;
@@ -253,7 +261,7 @@ VSEncoding::compute_OptPartition(uint32_t *seq, uint32_t len, uint32_t fixCost,
             /* Finalization */
             delete[] SSSP;
             delete[] cost;
-            throw runtime_error("Can't allocate memory");
+            throw std::runtime_error("Can't allocate memory");
         }
 
         i = pSize;
@@ -294,7 +302,7 @@ public:
 
     const uint32_t * decodeVS(uint32_t len, const uint32_t *in, uint32_t *out,
             uint32_t *aux);
-    string name() const {
+    std::string name() const {
         return "VSEncoding";
     }
 
@@ -313,7 +321,7 @@ public:
             uint32_t *out, size_t &nvalue);
     uint32_t VSENCODING_BLOCKSZ;//     = 65536U
 
-    vector<uint32_t> __tmp;// = new uint32_t[VSENCODING_BLOCKSZ * 2 + VSEncodingBlocks::TAIL_MERGIN];
+    std::vector<uint32_t> __tmp;// = new uint32_t[VSENCODING_BLOCKSZ * 2 + VSEncodingBlocks::TAIL_MERGIN];
 
 };
 
@@ -449,7 +457,7 @@ void VSEncodingBlocks::encodeVS(uint32_t len, const uint32_t *in,
     logs = new uint32_t[len];
 
     if (logs == NULL)
-        cerr << "Can't allocate memory" << endl;
+        std::cerr << "Can't allocate memory" << std::endl;
 
     /* Compute logs of all numbers */
     for (i = 0; i < len; i++)
@@ -463,7 +471,7 @@ void VSEncodingBlocks::encodeVS(uint32_t len, const uint32_t *in,
     wt = new BitsWriter(out);
 
     if (wt == NULL)
-        cerr << "Can't initialize a class" << endl;
+        std::cerr << "Can't initialize a class" << std::endl;
 
     /* countBlocksLogs[i] says how many blocks uses i bits */
     for (i = 0; i < VSEBLOCKS_LOGS_LEN; i++) {
@@ -502,7 +510,7 @@ void VSEncodingBlocks::encodeVS(uint32_t len, const uint32_t *in,
             blocks[i] = new uint32_t[countBlocksLogs[i]];
 
             if (blocks[i] == NULL)
-                cerr << "Can't allocate memory" << endl;
+                std::cerr << "Can't allocate memory" << std::endl;
         } else {
             blocks[i] = NULL;
         }
@@ -734,7 +742,7 @@ const uint32_t * VSEncodingBlocks::decodeArray(const uint32_t *in,
     const uint32_t * ans = decodeVS(res, in, out, &__tmp[0]);
     assert(initin + len >= in);
     if (initout + orignvalue < out)
-        cerr << "possible overrun" << endl;
+        std::cerr << "possible overrun" << std::endl;
     return ans;
 
 }
@@ -1348,7 +1356,8 @@ void __vseblocks_unpack32(uint32_t * __restrict__ out,
     }
 }
 
-}
+} // namespace vsencoding
+
 #if !defined(__clang__) && !defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #pragma GCC diagnostic pop
 #endif

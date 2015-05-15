@@ -1,0 +1,131 @@
+# pretty name = BP32
+# added 'BP32+VariableByte'
+# pretty name = copy
+# added 'JustCopy'
+# pretty name = fastbinarypacking16
+# added 'FastBinaryPacking16+VariableByte'
+# pretty name = fastbinarypacking32
+# added 'FastBinaryPacking32+VariableByte'
+# pretty name = fastbinarypacking8
+# added 'FastBinaryPacking8+VariableByte'
+# pretty name = fastpfor
+# added 'FastPFor+VariableByte'
+# pretty name = newpfor
+# added 'NewPFor<4,Simple16>+VariableByte'
+# pretty name = optpfor
+# added 'OPTPFor<4,Simple16>+VariableByte'
+# pretty name = pfor
+# added 'PFor+VariableByte'
+# pretty name = pfor2008
+# added 'PFor2008+VariableByte'
+# pretty name = simdbinarypacking
+# added 'SIMDBinaryPacking+VariableByte'
+# pretty name = simdfastpfor
+# added 'SIMDFastPFor+VariableByte'
+# pretty name = simdglobpacking
+# added 'SIMDGlobalBinaryPacking+VariableByte'
+# pretty name = simple8b
+# added 'Simple8b'
+# pretty name = simplepfor
+# added 'SimplePFor+VariableByte'
+# pretty name = snappy
+# added 'Snappy'
+# pretty name = varintg8iu
+# added 'VarIntG8IU'
+# pretty name = vbyte
+# added 'VariableByte'
+# pretty name = vsencoding
+# added 'VSEncoding'
+# found uniformdynamic
+# sparse uniform data generation...
+# generated 1024 arrays
+# their size is  32768
+#BP32+VariableByte	JustCopy	FastBinaryPacking16+VariableByte	FastBinaryPacking32+VariableByte	FastBinaryPacking8+VariableByte	FastPFor+VariableByte	NewPFor<4,Simple16>+VariableByte	OPTPFor<4,Simple16>+VariableByte	PFor+VariableByte	PFor2008+VariableByte	SIMDBinaryPacking+VariableByte	SIMDFastPFor+VariableByte	SIMDGlobalBinaryPacking+VariableByte	Simple8b	SimplePFor+VariableByte	Snappy	VarIntG8IU	VariableByte	VSEncoding	
+# for each scheme we give compression speed (million int./s) decompression speed and bits per integer
+14	852.6	1165	16.7		1240	1531	32		595.4	810.9	17.01		847.6	1161	16.7		445.6	633.4	17.55		177.6	1135	16.32		57.17	1230	16.58		3.349	1028	16.57		148	1494	16.84		121.8	1471	16.84		1278	1694	17.01		184.9	1376	16.32		1220	1665	18		206.1	466.4	18.21		181.8	1157	16.28		942.9	1436	32		130	747.1	18.37		193.9	161	18.88		9.008	613	18.17		
+# generated 32 arrays
+# their size is  1048576
+#BP32+VariableByte	JustCopy	FastBinaryPacking16+VariableByte	FastBinaryPacking32+VariableByte	FastBinaryPacking8+VariableByte	FastPFor+VariableByte	NewPFor<4,Simple16>+VariableByte	OPTPFor<4,Simple16>+VariableByte	PFor+VariableByte	PFor2008+VariableByte	SIMDBinaryPacking+VariableByte	SIMDFastPFor+VariableByte	SIMDGlobalBinaryPacking+VariableByte	Simple8b	SimplePFor+VariableByte	Snappy	VarIntG8IU	VariableByte	VSEncoding	
+# for each scheme we give compression speed (million int./s) decompression speed and bits per integer
+9	723.5	898.5	11.71		1091	1260	32		490.4	696.4	12.32		743.5	866.1	11.71		381.5	573.8	13.01		160.4	817.7	11.32		61.66	741.3	11.53		4.939	586.2	11.24		146.7	1125	12.26		123.9	1096	12.22		1296	1500	12.04		192.1	1292	11.32		980.3	1216	27.17		258.5	614.9	11.87		179.1	904.1	11.27		79.78	166.5	23.99		78.21	761.9	15.16		250.6	220.1	14.24		8.189	661	12.31		
+# generated 1 arrays
+# their size is  33554432
+#BP32+VariableByte	JustCopy	FastBinaryPacking16+VariableByte	FastBinaryPacking32+VariableByte	FastBinaryPacking8+VariableByte	FastPFor+VariableByte	NewPFor<4,Simple16>+VariableByte	OPTPFor<4,Simple16>+VariableByte	PFor+VariableByte	PFor2008+VariableByte	SIMDBinaryPacking+VariableByte	SIMDFastPFor+VariableByte	SIMDGlobalBinaryPacking+VariableByte	Simple8b	SimplePFor+VariableByte	Snappy	VarIntG8IU	VariableByte	VSEncoding	
+# for each scheme we give compression speed (million int./s) decompression speed and bits per integer
+4	833.5	1016	6.685		1193	1475	32		586.5	803.8	6.989		823.1	994.4	6.685		424.1	628.7	8.916		180.4	950.9	6.313		104.9	861.9	6.521		10.2	599.4	6.24		144.3	1088	7.261		125.3	1124	7.261		1326	1696	7.032		184.4	1379	6.317		964	1180	27.97		316.3	806.3	6.438		183.7	930.7	6.264		103.4	150.2	15.79		202.8	1066	9.001		775.8	701	8.003		8.479	655.3	7.217		
+# building summary 
+###################
+#test 1 of 3
+#wall clock (delta mis, comp mis, decomp mis, idelta mis, bits per int)
+#
+#BP32+VariableByte                        	 -1 	 852.6 	 1165 	 -1 	 16.7
+#JustCopy                                 	 -1 	 1240 	 1531 	 -1 	 32
+#FastBinaryPacking16+VariableByte         	 -1 	 595.4 	 810.9 	 -1 	 17.01
+#FastBinaryPacking32+VariableByte         	 -1 	 847.6 	 1161 	 -1 	 16.7
+#FastBinaryPacking8+VariableByte          	 -1 	 445.6 	 633.4 	 -1 	 17.55
+#FastPFor+VariableByte                    	 -1 	 177.6 	 1135 	 -1 	 16.32
+#NewPFor<4,Simple16>+VariableByte         	 -1 	 57.17 	 1230 	 -1 	 16.58
+#OPTPFor<4,Simple16>+VariableByte         	 -1 	 3.349 	 1028 	 -1 	 16.57
+#PFor+VariableByte                        	 -1 	 148 	 1494 	 -1 	 16.84
+#PFor2008+VariableByte                    	 -1 	 121.8 	 1471 	 -1 	 16.84
+#SIMDBinaryPacking+VariableByte           	 -1 	 1278 	 1694 	 -1 	 17.01
+#SIMDFastPFor+VariableByte                	 -1 	 184.9 	 1376 	 -1 	 16.32
+#SIMDGlobalBinaryPacking+VariableByte     	 -1 	 1220 	 1665 	 -1 	 18
+#Simple8b                                 	 -1 	 206.1 	 466.4 	 -1 	 18.21
+#SimplePFor+VariableByte                  	 -1 	 181.8 	 1157 	 -1 	 16.28
+#Snappy                                   	 -1 	 942.9 	 1436 	 -1 	 32
+#VarIntG8IU                               	 -1 	 130 	 747.1 	 -1 	 18.37
+#VariableByte                             	 -1 	 193.9 	 161 	 -1 	 18.88
+#VSEncoding                               	 -1 	 9.008 	 613 	 -1 	 18.17
+#
+#
+###################
+#test 2 of 3
+#wall clock (delta mis, comp mis, decomp mis, idelta mis, bits per int)
+#
+#BP32+VariableByte                        	 -1 	 723.5 	 898.5 	 -1 	 11.71
+#JustCopy                                 	 -1 	 1091 	 1260 	 -1 	 32
+#FastBinaryPacking16+VariableByte         	 -1 	 490.4 	 696.4 	 -1 	 12.32
+#FastBinaryPacking32+VariableByte         	 -1 	 743.5 	 866.1 	 -1 	 11.71
+#FastBinaryPacking8+VariableByte          	 -1 	 381.5 	 573.8 	 -1 	 13.01
+#FastPFor+VariableByte                    	 -1 	 160.4 	 817.7 	 -1 	 11.32
+#NewPFor<4,Simple16>+VariableByte         	 -1 	 61.66 	 741.3 	 -1 	 11.53
+#OPTPFor<4,Simple16>+VariableByte         	 -1 	 4.939 	 586.2 	 -1 	 11.24
+#PFor+VariableByte                        	 -1 	 146.7 	 1125 	 -1 	 12.26
+#PFor2008+VariableByte                    	 -1 	 123.9 	 1096 	 -1 	 12.22
+#SIMDBinaryPacking+VariableByte           	 -1 	 1296 	 1500 	 -1 	 12.04
+#SIMDFastPFor+VariableByte                	 -1 	 192.1 	 1292 	 -1 	 11.32
+#SIMDGlobalBinaryPacking+VariableByte     	 -1 	 980.3 	 1216 	 -1 	 27.17
+#Simple8b                                 	 -1 	 258.5 	 614.9 	 -1 	 11.87
+#SimplePFor+VariableByte                  	 -1 	 179.1 	 904.1 	 -1 	 11.27
+#Snappy                                   	 -1 	 79.78 	 166.5 	 -1 	 23.99
+#VarIntG8IU                               	 -1 	 78.21 	 761.9 	 -1 	 15.16
+#VariableByte                             	 -1 	 250.6 	 220.1 	 -1 	 14.24
+#VSEncoding                               	 -1 	 8.189 	 661 	 -1 	 12.31
+#
+#
+###################
+#test 3 of 3
+#wall clock (delta mis, comp mis, decomp mis, idelta mis, bits per int)
+#
+#BP32+VariableByte                        	 -1 	 833.5 	 1016 	 -1 	 6.685
+#JustCopy                                 	 -1 	 1193 	 1475 	 -1 	 32
+#FastBinaryPacking16+VariableByte         	 -1 	 586.5 	 803.8 	 -1 	 6.989
+#FastBinaryPacking32+VariableByte         	 -1 	 823.1 	 994.4 	 -1 	 6.685
+#FastBinaryPacking8+VariableByte          	 -1 	 424.1 	 628.7 	 -1 	 8.916
+#FastPFor+VariableByte                    	 -1 	 180.4 	 950.9 	 -1 	 6.313
+#NewPFor<4,Simple16>+VariableByte         	 -1 	 104.9 	 861.9 	 -1 	 6.521
+#OPTPFor<4,Simple16>+VariableByte         	 -1 	 10.2 	 599.4 	 -1 	 6.24
+#PFor+VariableByte                        	 -1 	 144.3 	 1088 	 -1 	 7.261
+#PFor2008+VariableByte                    	 -1 	 125.3 	 1124 	 -1 	 7.261
+#SIMDBinaryPacking+VariableByte           	 -1 	 1326 	 1696 	 -1 	 7.032
+#SIMDFastPFor+VariableByte                	 -1 	 184.4 	 1379 	 -1 	 6.317
+#SIMDGlobalBinaryPacking+VariableByte     	 -1 	 964 	 1180 	 -1 	 27.97
+#Simple8b                                 	 -1 	 316.3 	 806.3 	 -1 	 6.438
+#SimplePFor+VariableByte                  	 -1 	 183.7 	 930.7 	 -1 	 6.264
+#Snappy                                   	 -1 	 103.4 	 150.2 	 -1 	 15.79
+#VarIntG8IU                               	 -1 	 202.8 	 1066 	 -1 	 9.001
+#VariableByte                             	 -1 	 775.8 	 701 	 -1 	 8.003
+#VSEncoding                               	 -1 	 8.479 	 655.3 	 -1 	 7.217
+#
+#

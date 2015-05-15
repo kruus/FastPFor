@@ -1,0 +1,12 @@
+/home/kruus/FastPFor/build/CMakeFiles/FastPFor_lib.dir
+/home/kruus/FastPFor/build/CMakeFiles/benchbitpacking.dir
+/home/kruus/FastPFor/build/CMakeFiles/check.dir
+/home/kruus/FastPFor/build/CMakeFiles/codecs.dir
+/home/kruus/FastPFor/build/CMakeFiles/codecssnappy.dir
+/home/kruus/FastPFor/build/CMakeFiles/csv2maropu.dir
+/home/kruus/FastPFor/build/CMakeFiles/entropy.dir
+/home/kruus/FastPFor/build/CMakeFiles/gapstats.dir
+/home/kruus/FastPFor/build/CMakeFiles/inmemorybenchmark.dir
+/home/kruus/FastPFor/build/CMakeFiles/inmemorybenchmarksnappy.dir
+/home/kruus/FastPFor/build/CMakeFiles/partitionbylength.dir
+/home/kruus/FastPFor/build/CMakeFiles/unit.dir

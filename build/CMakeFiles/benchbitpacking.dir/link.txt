@@ -1,0 +1,1 @@
+/usr/bin/c++   -O3 -DNDEBUG    CMakeFiles/benchbitpacking.dir/src/benchbitpacking.cpp.o CMakeFiles/benchbitpacking.dir/src/horizontalbitpacking.cpp.o  -o benchbitpacking -rdynamic libFastPFor_lib.a 

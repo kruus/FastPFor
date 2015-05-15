@@ -1,0 +1,1 @@
+/usr/bin/c++   -O3 -DNDEBUG    CMakeFiles/inmemorybenchmarksnappy.dir/src/inmemorybenchmark.cpp.o  -o inmemorybenchmarksnappy -rdynamic libFastPFor_lib.a /usr/local/lib/libsnappy.so -Wl,-rpath,/usr/local/lib 

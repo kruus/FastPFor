@@ -19,13 +19,17 @@
 #include "util.h"
 #include "codecs.h"
 
+namespace FastPForLib {
+
 /**
  * NewPFD also known as NewPFOR.
+ *
+ * In a multithreaded context, you may need one NewPFor per thread.
  *
  * Follows
  *
  * H. Yan, S. Ding, T. Suel, Inverted index compression and query processing with
- * optimized document ordering, in: WWW Õ09, 2009, pp. 401Ð410.
+ * optimized document ordering, in: WWW '09, 2009, pp. 401-410.
  */
 template<uint32_t BlockSizeInUnitsOfPackSize, class ExceptionCoder = Simple16<
         false> >
@@ -50,35 +54,36 @@ public:
     virtual uint32_t findBestB(const uint32_t *in, uint32_t len);
 
     virtual void encodeBlock(const uint32_t *in, uint32_t *out, size_t &nvalue);
+    virtual const uint32_t* decodeBlock(const uint32_t* in,uint32_t* out,size_t& nvalue);
 
     virtual void encodeArray(const uint32_t *in, const size_t len,
             uint32_t *out, size_t &nvalue);
     virtual const uint32_t * decodeArray(const uint32_t *in, const size_t len,
             uint32_t *out, size_t &nvalue);
-    virtual string name() const {
-        ostringstream convert;
+    virtual std::string name() const {
+        std::ostringstream convert;
         convert << "NewPFor<" << BlockSizeInUnitsOfPackSize << ","
                 << ecoder.name() << ">";
         return convert.str();
     }
     ExceptionCoder ecoder;
-    vector<uint32_t> exceptionsPositions;
-    vector<uint32_t> exceptionsValues;
-    vector<uint32_t> exceptions;
-    vector<uint32_t> tobecoded;
-    static vector<uint32_t> possLogs;
+std::    vector<uint32_t> exceptionsPositions;
+    std::vector<uint32_t> exceptionsValues;
+    std::vector<uint32_t> exceptions;
+    std::vector<uint32_t> tobecoded;
+    static std::vector<uint32_t> possLogs;
 
 };
 
 /// nice compilers support this
 //template<uint32_t BlockSizeInUnitsOfPackSize, class ExceptionCoder>
-//vector<uint32_t> NewPFor<BlockSizeInUnitsOfPackSize, ExceptionCoder>::possLogs =
+//std::vector<uint32_t> NewPFor<BlockSizeInUnitsOfPackSize, ExceptionCoder>::possLogs =
 //        { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 16, 20, 32 };
 
 
 /// this is for brain dead compilers:
-static inline vector<uint32_t> __ihatestupidcompilers() {
-	vector<uint32_t> ans;
+static inline std::vector<uint32_t> __ihatestupidcompilers() {
+	std::vector<uint32_t> ans;
 	ans.push_back(0); // I
 	ans.push_back(1); // hate
 	ans.push_back(2); // stupid
@@ -100,7 +105,7 @@ static inline vector<uint32_t> __ihatestupidcompilers() {
 }
 
 template<uint32_t BlockSizeInUnitsOfPackSize, class ExceptionCoder>
-vector<uint32_t> NewPFor<BlockSizeInUnitsOfPackSize, ExceptionCoder>::possLogs = __ihatestupidcompilers();
+std::vector<uint32_t> NewPFor<BlockSizeInUnitsOfPackSize, ExceptionCoder>::possLogs = __ihatestupidcompilers();
 
 template<uint32_t BlockSizeInUnitsOfPackSize, class ExceptionCoder>
 __attribute__ ((pure))
@@ -222,7 +227,7 @@ void NewPFor<BlockSizeInUnitsOfPackSize, ExceptionCoder>::encodeArray(
     *out++ = numBlocks;
     nvalue = 1;
 #ifdef STATS
-        vector<uint32_t> stats(33,0);
+        std::vector<uint32_t> stats(33,0);
 #endif
     for (uint32_t i = 0; i < numBlocks; i++) {
 #ifdef STATS
@@ -239,10 +244,45 @@ void NewPFor<BlockSizeInUnitsOfPackSize, ExceptionCoder>::encodeArray(
         for(uint32_t k = 0; k<33; ++k) cout<<"newpfor b="<<k<<" "<<stats[k]<<endl;
 #endif
     if (nvalue > initnvalue) {
-        cerr << " we have a possible buffer overrun" << endl;
+        std::cerr << " we have a possible buffer overrun" << std::endl;
     }
     ASSERT(len == static_cast<size_t>(in - initin),len<<" "<<(in - initin));
     ASSERT(nvalue == static_cast<size_t>(out - initout),nvalue<<" "<<(out - initout));
+}
+
+template<uint32_t BlockSizeInUnitsOfPackSize, class ExceptionCoder>
+const uint32_t * NewPFor<BlockSizeInUnitsOfPackSize, ExceptionCoder>::decodeBlock(
+        const uint32_t *in, uint32_t *out, size_t &nvalue) {
+    const uint32_t * const initout(out);
+    const uint32_t b = *in >> (32 - PFORDELTA_B);
+    const size_t nExceptions = (*in >> (32 - (PFORDELTA_B
+                  + PFORDELTA_NEXCEPT))) & ((1 << PFORDELTA_NEXCEPT) - 1);
+    const uint32_t encodedExceptionsSize = *in & ((1 << PFORDELTA_EXCEPTSZ)
+                                                  - 1);
+
+    size_t twonexceptions = 2 * nExceptions;
+    ++in;
+    if (encodedExceptionsSize > 0)
+        ecoder.decodeArray(in, encodedExceptionsSize, &exceptions[0],
+                           twonexceptions);
+    assert(twonexceptions >= 2 * nExceptions);
+    in += encodedExceptionsSize;
+
+    uint32_t * beginout(out);// we use this later
+
+    for (uint32_t j = 0; j < BlockSize; j += 32) {
+        fastunpack(in, out, b);
+        in += b;
+        out += 32;
+    }
+
+    for (uint32_t e = 0, lpos = -1; e < nExceptions; e++) {
+        lpos += exceptions[e] + 1;
+        beginout[lpos] |= (exceptions[e + nExceptions] + 1) << b;
+    }
+
+    nvalue = out - initout;
+    return in;
 }
 
 template<uint32_t BlockSizeInUnitsOfPackSize, class ExceptionCoder>
@@ -260,41 +300,14 @@ const uint32_t * NewPFor<BlockSizeInUnitsOfPackSize, ExceptionCoder>::decodeArra
     if (BlockSize * (*in) > nvalue)
         throw NotEnoughStorage(*in);
     const uint32_t numBlocks = *in++;
-
+    size_t out_len = 0;
     for (uint32_t i = 0; i < numBlocks; i++) {
-
-        const uint32_t b = *in >> (32 - PFORDELTA_B);
-
-        const size_t nExceptions = (*in >> (32 - (PFORDELTA_B
-                + PFORDELTA_NEXCEPT))) & ((1 << PFORDELTA_NEXCEPT) - 1);
-
-        const uint32_t encodedExceptionsSize = *in & ((1 << PFORDELTA_EXCEPTSZ)
-                - 1);
-
-        size_t twonexceptions = 2 * nExceptions;
-        ++in;
-        if (encodedExceptionsSize > 0)
-            ecoder.decodeArray(in, encodedExceptionsSize, &exceptions[0],
-                    twonexceptions);
-        assert(twonexceptions >= 2 * nExceptions);
-        in += encodedExceptionsSize;
-
-        uint32_t * beginout(out);// we use this later
-
-        for (uint32_t j = 0; j < BlockSize; j += 32) {
-            fastunpack(in, out, b);
-            in += b;
-            out += 32;
-        }
-
-        for (uint32_t e = 0, lpos = -1; e < nExceptions; e++) {
-            lpos += exceptions[e] + 1;
-            beginout[lpos] |= (exceptions[e + nExceptions] + 1) << b;
-        }
-
+        in = decodeBlock(in, out, out_len);
+        out += out_len;
     }
+
     if (static_cast<size_t> (out - initout) > nvalue) {
-        cerr << "possible buffer overrun" << endl;
+        std::cerr << "possible buffer overrun" << std::endl;
     }
     ASSERT(in <= len +initin, in-initin<<" "<<len);
 
@@ -302,5 +315,7 @@ const uint32_t * NewPFor<BlockSizeInUnitsOfPackSize, ExceptionCoder>::decodeArra
     assert(nvalue == numBlocks * BlockSize);
     return in;
 }
+
+} // namespace FastPFor
 
 #endif /* PFOR_H_ */
