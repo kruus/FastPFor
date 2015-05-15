@@ -25,15 +25,15 @@
 
 #ifndef _MSC_VER
 #pragma message "No SSSE4.1 support? try adding -msse4.1"
-#else
-#pragma message("No SSSE4.1 support? try adding -msse4.1")
 #endif
 #endif
 #include "common.h"
 
-
+namespace FastPForLib {
 
 void simdhunpack(const uint8_t * __restrict__ in,uint32_t * __restrict__ out, uint32_t bit);
+
+}
 
 #endif /* HORIZONTALBITPACKING_H_ */
 

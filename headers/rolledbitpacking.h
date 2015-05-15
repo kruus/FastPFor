@@ -8,7 +8,12 @@
 #ifndef ROLLEDBITPACKING_H_
 #define ROLLEDBITPACKING_H_
 
+#include <exception> // logic_error, runtime_error
 #include "common.h"
+#include "util.h"
+
+
+namespace FastPForLib {
 
 /***
  * The idea here is not to unroll the loops and to let the
@@ -222,7 +227,7 @@ uint8_t * __pack_vl(const uint32_t * __restrict__ in,
     };
 #else
     const uint32_t mygcd = gcd(bit, 32);
-#endif    
+#endif
 
     // iterate over bit position of the output
     for (uint32_t t = 0; t < mygcd; ++t) {
@@ -247,7 +252,7 @@ uint8_t * __pack_vl(const uint32_t * __restrict__ in,
         }
         out += bit / mygcd;
     }
-    throw logic_error("should never get here");
+    throw std::logic_error("should never get here");
 }
 
 /**
@@ -258,7 +263,7 @@ const uint8_t * __unpack_vl(const uint8_t * __restrict__ inbyte,
         uint32_t * __restrict__ out) {
     assert(bit <= 32);
     uint32_t counter = 0;
-    
+
 #if  !defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     enum {
         mygcd = gcd(bit, 32)
@@ -286,7 +291,7 @@ const uint8_t * __unpack_vl(const uint8_t * __restrict__ inbyte,
         }
         in += bit / mygcd;
     }
-    throw logic_error("should never get here");
+    throw std::logic_error("should never get here");
 }
 
 template<uint32_t bit>
@@ -426,7 +431,7 @@ void unpack(const uint32_t * __restrict__ in, uint32_t * __restrict__ out,
         __unpack<32> (in, out);
         break;
     default:
-        throw runtime_error("Unsupported number of bits");
+        throw std::runtime_error("Unsupported number of bits");
     }
 }
 
@@ -534,7 +539,7 @@ void pack(const uint32_t * __restrict__ in, uint32_t * __restrict__ out,
         __pack<32, mask> (in, out);
         break;
     default:
-        throw runtime_error("Unsupported number of bits");
+        throw std::runtime_error("Unsupported number of bits");
     }
 }
 
@@ -642,7 +647,7 @@ void pack_tight(const uint32_t * __restrict__ in, uint32_t * __restrict__ out,
         __pack_tight<32, mask> (in, out);
         break;
     default:
-        throw runtime_error("Unsupported number of bits");
+        throw std::runtime_error("Unsupported number of bits");
     }
 }
 
@@ -751,7 +756,7 @@ void unpack_tight(const uint32_t * __restrict__ in,
         __unpack_tight<32,true> (in, out);
         break;
     default:
-        throw runtime_error("Unsupported number of bits");
+        throw std::runtime_error("Unsupported number of bits");
     }
 }
 
@@ -859,7 +864,7 @@ uint8_t * pack_vl(const uint32_t * __restrict__ in, uint8_t * __restrict__ out,
         return __pack_vl<32, mask, length> (in, out);
 
     default:
-        throw runtime_error("Unsupported number of bits");
+        throw std::runtime_error("Unsupported number of bits");
     }
 }
 
@@ -970,7 +975,10 @@ const uint8_t * unpack_vl(const uint8_t * __restrict__ in,
         return __unpack_vl<32, length> (in, out);
 
     default:
-        throw runtime_error("Unsupported number of bits");
+        throw std::runtime_error("Unsupported number of bits");
     }
 }
+
+} // namespace FastPFor
+
 #endif /* ROLLEDBITPACKING_H_ */

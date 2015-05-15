@@ -3,38 +3,116 @@
 #
 # Copyright (c) 2012 Louis Dionne
 #
-
-cmake_minimum_required(VERSION 2.8)
-project(FastPFor)
-list(APPEND CMAKE_MODULE_PATH ${FastPFor_SOURCE_DIR}/cmake_modules)
-
-set(warnings -Wall -Wextra -pedantic -Weffc++ -Wcast-align -Wunsafe-loop-optimizations -Wcast-qual)
-add_definitions(-std=c++0x -O3 -mssse3 ${warnings})
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-    add_definitions(-stdlib=libc++)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
+cmake_minimum_required(VERSION 2.8.7)
+if (NOT CMAKE_BUILD_TYPE)
+		message(STATUS "No build type selected, default to Release")
+		set(CMAKE_BUILD_TYPE "Release")
+else()
+        MESSAGE( STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE} )
 endif()
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules")
+include(AppendCompilerFlags)
+
+
+project(FastPFor CXX C)
+set(PROJECT_URL "https://github.com/lemire/FastPFOR")
+set(PROJECT_DESCRIPTION "The FastPFOR C++ library: Fast integer compression")
+include(DetectCPUFeatures)
+#
+# Runs compiler with "-dumpversion" and parses major/minor
+# version with a regex.
+#
+# Taken&Modified from Boost.cmake
+#
+function(CXX_COMPILER_DUMPVERSION _OUTPUT_VERSION)
+
+  exec_program(${CMAKE_CXX_COMPILER}
+    ARGS ${CMAKE_CXX_COMPILER_ARG1} -dumpversion
+    OUTPUT_VARIABLE COMPILER_VERSION
+  )
+  #string(REGEX REPLACE "([0-9])\\.([0-9])(\\.[0-9])?" "\\1\\2"
+  #   COMPILER_VERSION ${COMPILER_VERSION})
+
+  set(${_OUTPUT_VERSION} ${COMPILER_VERSION} PARENT_SCOPE)
+endfunction()
+
+if(NOT WIN32)
+    CXX_COMPILER_DUMPVERSION(CXX_COMPILER_VERSION)
+endif()
+MESSAGE( STATUS "CMAKE_SIZEOF_VOID_P (should be 8): " ${CMAKE_SIZEOF_VOID_P} )
+if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+   MESSAGE( STATUS "Good. You appear to have a 64-bit system. " )
+else()
+   MESSAGE(FATAL_ERROR "Please use a 64-bit system. " )
+endif()
+MESSAGE( STATUS "CMAKE_CXX_COMPILER_ID: " ${CMAKE_CXX_COMPILER_ID} )
+MESSAGE( STATUS "CMAKE_C_COMPILER: " ${CXX_COMPILER_VERSION} )
+MESSAGE( STATUS "CXX_COMPILER_VERSION: " ${CXX_COMPILER_VERSION} )
+if( SUPPORT_SSE42 )
+    MESSAGE( STATUS "SSE 4.2 support detected" )
+else()
+    MESSAGE( STATUS "SSE 4.2 support not detected" )
+endif()
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    # require at least gcc 4.7
+    if (CXX_COMPILER_VERSION VERSION_LESS 4.7)
+        message(STATUS "GCC version must be at least 4.7!")
+    endif()
+    # Uncomment the following lines to see how the code compiles without AVX,SSE4.2 and/or SSE2
+    #set (CMAKE_CXX_FLAGS_RELEASE "-Wall -Ofast -lm -lrt -DNDEBUG -std=c++11 -DHAVE_CXX0X -march=x86-64")
+    #set (CMAKE_CXX_FLAGS_RELEASE "-Wall -Ofast -lm -lrt -DNDEBUG -std=c++11 -DHAVE_CXX0X -march=core2")
+    #set (CMAKE_CXX_FLAGS_RELEASE "-Wall -Ofast -lm -lrt -DNDEBUG -std=c++11 -DHAVE_CXX0X -msse4.2")
+    set (CMAKE_CXX_FLAGS_RELEASE "-Wall -Wcast-align -Ofast -lm -lrt -DNDEBUG -std=c++11 -DHAVE_CXX0X -march=native -Wl,--no-as-needed")
+    set (CMAKE_CXX_FLAGS_DEBUG   "-Wall -Wcast-align -ggdb  -lm -lrt -std=c++11 -DHAVE_CXX0X -march=native -Wl,--no-as-needed")
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    if (CXX_COMPILER_VERSION VERSION_LESS 14.0.1)
+        message(STATUS "Intel version must be at least 14.0.1!")
+    endif()
+    set (CMAKE_CXX_FLAGS_RELEASE "-Wall -Ofast -lrt -DNDEBUG -std=c++11 -DHAVE_CXX0X  -march=native")
+    set (CMAKE_CXX_FLAGS_DEBUG   "-Wall -ggdb  -lrt -std=c++11 -DHAVE_CXX0X  -march=native")
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    if (CXX_COMPILER_VERSION VERSION_LESS 4.2.1)
+        message(STATUS  "Clang version must be at least 4.2.1!" )
+    endif()
+    set (CMAKE_CXX_FLAGS_RELEASE "-Wall -Wcast-align -O3 -DNDEBUG -std=c++11 -DHAVE_CXX0X -march=native")
+    set (CMAKE_CXX_FLAGS_DEBUG   "-Wall -Wcast-align -ggdb  -std=c++11 -DHAVE_CXX0X -march=native")
+elseif(WIN32)
+    # TODO add support for later versions?
+    if(NOT MSVC12)
+         message(STATUS "On Windows, only MSVC version 12 is supported!") 
+    endif()
+else ()
+    message(FATAL_ERROR "Please, use GCC, Clang, or the Intel compiler!")
+endif()
+
+
+# library target
 include_directories(headers)
-
-
-add_library(FastPFor_lib STATIC src/bitpacking.cpp
+add_library(FastPFor STATIC src/bitpacking.cpp
+                                src/bitpacking.cpp
                                 src/bitpackingaligned.cpp
                                 src/bitpackingunaligned.cpp
-                                src/simdbitpacking.cpp)
+                                src/horizontalbitpacking.cpp 
+                                src/simdunalignedbitpacking.cpp
+                                src/simdbitpacking.cpp
+								${HEADERS}
+								)
 
 
+# other executables
 add_executable(gapstats src/gapstats.cpp)
 add_executable(partitionbylength src/partitionbylength.cpp)
 add_executable(csv2maropu src/csv2maropu.cpp)
 
 add_executable(entropy src/entropy.cpp)
-target_link_libraries(entropy FastPFor_lib)
+target_link_libraries(entropy FastPFor)
 
-# Enable sse4.1 instructions for horizontal bit packing
-set_source_files_properties(src/horizontalbitpacking.cpp PROPERTIES COMPILE_FLAGS -msse4.1)
-add_executable(benchbitpacking src/benchbitpacking.cpp src/horizontalbitpacking.cpp)
-target_link_libraries(benchbitpacking FastPFor_lib)
+if( SUPPORT_SSE42 )
+    add_executable(benchbitpacking src/benchbitpacking.cpp)
+    target_link_libraries(benchbitpacking FastPFor)
+endif()
 
 find_package(snappy)
 if(NOT ${snappy_FOUND})
@@ -46,19 +124,22 @@ else()
     include_directories(${snappy_INCLUDE_DIRS})
     add_executable(codecssnappy src/codecs.cpp)
     set_target_properties(codecssnappy PROPERTIES DEFINE_SYMBOL USESNAPPY)
-    target_link_libraries(codecssnappy FastPFor_lib ${snappy_LIBRARIES})
+    target_link_libraries(codecssnappy FastPFor ${snappy_LIBRARIES})
 
     add_executable(inmemorybenchmarksnappy src/inmemorybenchmark.cpp)
     set_target_properties(inmemorybenchmarksnappy PROPERTIES DEFINE_SYMBOL USESNAPPY)
-    target_link_libraries(inmemorybenchmarksnappy FastPFor_lib ${snappy_LIBRARIES})
+    target_link_libraries(inmemorybenchmarksnappy FastPFor ${snappy_LIBRARIES})
 endif()
 
 add_executable(codecs src/codecs.cpp)
-target_link_libraries(codecs FastPFor_lib)
+target_link_libraries(codecs FastPFor)
+
+add_executable(example example.cpp)
+target_link_libraries(example FastPFor)
 
 add_executable(inmemorybenchmark src/inmemorybenchmark.cpp)
-target_link_libraries(inmemorybenchmark FastPFor_lib)
+target_link_libraries(inmemorybenchmark FastPFor)
 
 add_executable(unit src/unit.cpp)
-target_link_libraries(unit FastPFor_lib)
+target_link_libraries(unit FastPFor)
 add_custom_target(check unit DEPENDS unit)

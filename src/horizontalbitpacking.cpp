@@ -15,17 +15,16 @@
  * Optimized for a recent Intel core i7 processor by D. Lemire on Oct. 2012.
  */
 
-#ifndef __SSE4_1__
-#pragma message "Disabling horizontal bit unpacking due to lack of SSSE4.1 support, try adding -msse4.1"
-#else
+
 #include "horizontalbitpacking.h"
 
+namespace FastPForLib {
+
 using namespace std;
+
 static void SIMD_nullunpacker32(const uint8_t *   , uint32_t *    out) {
     memset(out,0,32 * 4 * 4);
 }
-
-
 
              //Did not get good results with this:
 /*
@@ -984,7 +983,4 @@ void simdhunpack(const uint8_t *  in,uint32_t *  out, uint32_t bit) {
 
 }
 
-
-
-
-#endif
+} // namespace FastPFor
