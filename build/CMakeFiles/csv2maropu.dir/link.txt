@@ -1,1 +1,0 @@
-/usr/bin/c++   -O3 -DNDEBUG    CMakeFiles/csv2maropu.dir/src/csv2maropu.cpp.o  -o csv2maropu -rdynamic 

@@ -1,1 +1,0 @@
-/usr/bin/c++   -O3 -DNDEBUG    CMakeFiles/partitionbylength.dir/src/partitionbylength.cpp.o  -o partitionbylength -rdynamic 

@@ -1,1 +1,0 @@
-/usr/bin/c++   -O3 -DNDEBUG    CMakeFiles/codecs.dir/src/codecs.cpp.o  -o codecs -rdynamic libFastPFor_lib.a 
